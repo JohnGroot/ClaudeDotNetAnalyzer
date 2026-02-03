@@ -1,0 +1,6 @@
+{
+	"severity_threshold": "all",
+	"max_issues": 50,
+	"ignore_rules": [],
+	"project_file": ""
+}

@@ -1,0 +1,32 @@
+<Project>
+	<!--
+		ClaudeDotNetAnalyzer - Directory.Build.props
+		Drop this file into your project root to enable analyzers.
+		It cascades to all projects in the directory tree.
+	-->
+	<PropertyGroup>
+		<!-- Enable .NET Analyzers -->
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+		<!-- Treat warnings as errors in CI (optional, uncomment if desired) -->
+		<!-- <TreatWarningsAsErrors>true</TreatWarningsAsErrors> -->
+
+		<!-- Common suppressions for game development (Godot/Unity) -->
+		<!-- CA1711: Identifiers should not have incorrect suffix (e.g., EventHandler) -->
+		<!-- CA1716: Identifiers should not match keywords -->
+		<!-- CA2007: Consider calling ConfigureAwait (not applicable in game engines) -->
+		<NoWarn>$(NoWarn);CA1711;CA1716;CA2007</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- StyleCop.Analyzers for code style enforcement -->
+		<PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- Reference stylecop.json if it exists in the same directory -->
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Condition="Exists('$(MSBuildThisFileDirectory)stylecop.json')" />
+	</ItemGroup>
+</Project>

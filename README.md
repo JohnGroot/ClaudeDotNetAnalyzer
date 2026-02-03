@@ -102,21 +102,6 @@ Create `.claude-dotnet-analyzer.json` in your project root:
 - `DOTNET_ANALYZER_SEVERITY` - Severity threshold
 - `DOTNET_ANALYZER_MAX_ISSUES` - Maximum issues
 
-## Code Style Rules
-
-The included `.editorconfig` enforces these conventions:
-
-| Element | Convention | Example |
-|---------|------------|---------|
-| Classes, Methods, Properties | PascalCase | `MyClass`, `DoSomething()` |
-| Private/Protected fields | `_camelCase` | `_myField` |
-| Public fields | `_PascalCase` | `_MyField` |
-| Constants | `ALL_CAPS` | `MAX_VALUE` |
-| Parameters, locals | camelCase | `myParam` |
-| Indentation | Tabs | - |
-
-You can customize the severity and specificity of those settings in that file 
-
 ## Analyzers Included
 
 Further documentation [can be found here](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview?tabs=net-10), but a brief overview:

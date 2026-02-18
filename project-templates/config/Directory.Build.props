@@ -29,4 +29,50 @@
 		<!-- Reference stylecop.json if it exists in the same directory -->
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Condition="Exists('$(MSBuildThisFileDirectory)stylecop.json')" />
 	</ItemGroup>
+
+	<!-- =================================================================== -->
+	<!-- Optional Analyzers (toggle via MSBuild properties or JSON config)   -->
+	<!-- All are Roslyn analyzers - framework-agnostic, work with .NET 8/9/10 -->
+	<!-- =================================================================== -->
+
+	<!-- IDisposableAnalyzers: Catches resource leaks (IDISP001-026) -->
+	<PropertyGroup Condition="'$(EnableIDisposableAnalyzers)' == ''">
+		<EnableIDisposableAnalyzers>true</EnableIDisposableAnalyzers>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(EnableIDisposableAnalyzers)' == 'true'">
+		<PackageReference Include="IDisposableAnalyzers" Version="4.0.8" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- AsyncFixer: Catches async/await anti-patterns -->
+	<PropertyGroup Condition="'$(EnableAsyncFixer)' == ''">
+		<EnableAsyncFixer>true</EnableAsyncFixer>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(EnableAsyncFixer)' == 'true'">
+		<PackageReference Include="AsyncFixer" Version="2.1.0" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- Meziantou.Analyzer: 139+ rules for common .NET mistakes -->
+	<!-- Uses 2.0.x for broader Roslyn compatibility (Unity). Pure .NET 8+ can upgrade to 3.x -->
+	<PropertyGroup Condition="'$(EnableMeziantouAnalyzer)' == ''">
+		<EnableMeziantouAnalyzer>false</EnableMeziantouAnalyzer>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(EnableMeziantouAnalyzer)' == 'true'">
+		<PackageReference Include="Meziantou.Analyzer" Version="2.0.204" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- Roslynator.Analyzers: 200+ analyzers, refactorings, and code fixes -->
+	<PropertyGroup Condition="'$(EnableRoslynatorAnalyzers)' == ''">
+		<EnableRoslynatorAnalyzers>false</EnableRoslynatorAnalyzers>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(EnableRoslynatorAnalyzers)' == 'true'">
+		<PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="All" />
+	</ItemGroup>
+
+	<!-- SonarAnalyzer.CSharp: Security and bug detection -->
+	<PropertyGroup Condition="'$(EnableSonarAnalyzer)' == ''">
+		<EnableSonarAnalyzer>false</EnableSonarAnalyzer>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(EnableSonarAnalyzer)' == 'true'">
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="10.19.0.132793" PrivateAssets="All" />
+	</ItemGroup>
 </Project>

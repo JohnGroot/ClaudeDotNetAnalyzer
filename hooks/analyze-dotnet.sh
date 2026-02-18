@@ -47,8 +47,13 @@ IGNORE_RULES=""
 PROJECT_FILE=""
 
 if [[ -f "$CONFIG_FILE" ]]; then
-	SEVERITY_THRESHOLD=$(jq -r '.severity_threshold // "all"' "$CONFIG_FILE")
-	MAX_ISSUES=$(jq -r '.max_issues // 50' "$CONFIG_FILE")
+	# Only use config file values when env vars are not set (env vars take priority)
+	if [[ -z "${DOTNET_ANALYZER_SEVERITY:-}" ]]; then
+		SEVERITY_THRESHOLD=$(jq -r '.severity_threshold // "all"' "$CONFIG_FILE")
+	fi
+	if [[ -z "${DOTNET_ANALYZER_MAX_ISSUES:-}" ]]; then
+		MAX_ISSUES=$(jq -r '.max_issues // 50' "$CONFIG_FILE")
+	fi
 	IGNORE_RULES=$(jq -r '.ignore_rules // [] | join(",")' "$CONFIG_FILE")
 	PROJECT_FILE=$(jq -r '.project_file // empty' "$CONFIG_FILE")
 fi
@@ -64,7 +69,7 @@ if [[ -f "$CONFIG_FILE" ]]; then
 		"sonar_analyzer:EnableSonarAnalyzer"; do
 		json_key="${key_prop%%:*}"
 		msbuild_prop="${key_prop##*:}"
-		val=$(jq -r ".analyzers.${json_key} // empty" "$CONFIG_FILE")
+		val=$(jq -r ".analyzers.${json_key} | if type == \"boolean\" then tostring else empty end" "$CONFIG_FILE")
 		if [[ "$val" == "true" || "$val" == "false" ]]; then
 			ANALYZER_PROPS="$ANALYZER_PROPS /p:${msbuild_prop}=${val}"
 		fi

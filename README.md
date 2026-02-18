@@ -1,6 +1,6 @@
 # ClaudeDotNetAnalyzer
 
-A portable Claude Code "Stop" hook that runs StyleCop.Analyzers and Microsoft.CodeAnalysis.NetAnalyzers on your .NET projects, presenting issues to Claude for automatic fixing.
+A portable Claude Code "Stop" hook that runs Roslyn analyzers on your .NET projects, presenting issues to Claude for automatic fixing. Includes Microsoft.CodeAnalysis.NetAnalyzers, StyleCop.Analyzers, and optional community analyzers with easy toggle support.
 
 Inspired by the [HumanLayer blog post](https://www.humanlayer.dev/blog/writing-a-good-claude-md) on setting up Claude Code hooks for linting.
 
@@ -15,7 +15,7 @@ Inspired by the [HumanLayer blog post](https://www.humanlayer.dev/blog/writing-a
 
 ## Prerequisites
 
-- **dotnet CLI** - .NET SDK 8.0+ ([download](https://dotnet.microsoft.com/download))
+- **dotnet CLI** - .NET SDK 8.0, 9.0, or 10.0 ([download](https://dotnet.microsoft.com/download))
 - **jq** - JSON processor ([install](https://stedolan.github.io/jq/download/))
 - **bash** - Shell (included on macOS/Linux)
 
@@ -88,7 +88,14 @@ Create `.claude-dotnet-analyzer.json` in your project root:
   "severity_threshold": "all",
   "max_issues": 50,
   "ignore_rules": ["CA1707", "SA1633"],
-  "project_file": "src/MyProject.sln"
+  "project_file": "src/MyProject.sln",
+  "analyzers": {
+    "idisposable_analyzers": true,
+    "async_fixer": true,
+    "meziantou_analyzer": false,
+    "roslynator_analyzers": false,
+    "sonar_analyzer": false
+  }
 }
 ```
 
@@ -97,24 +104,75 @@ Create `.claude-dotnet-analyzer.json` in your project root:
 - `max_issues`: Maximum issues to report (default: 50)
 - `ignore_rules`: Array of rule IDs to skip
 - `project_file`: Explicit path to .sln or .csproj (auto-detected if omitted)
+- `analyzers`: Toggle individual analyzer packages on/off (see [Analyzers Included](#analyzers-included))
 
 **Environment variables** (override config file):
 - `DOTNET_ANALYZER_SEVERITY` - Severity threshold
 - `DOTNET_ANALYZER_MAX_ISSUES` - Maximum issues
 
+You can also toggle analyzers via MSBuild properties in your `.csproj` or a parent `Directory.Build.props`:
+
+```xml
+<PropertyGroup>
+  <EnableIDisposableAnalyzers>false</EnableIDisposableAnalyzers>
+  <EnableMeziantouAnalyzer>true</EnableMeziantouAnalyzer>
+</PropertyGroup>
+```
+
+## Code Style Rules
+
+The included `.editorconfig` enforces these conventions:
+
+| Element | Convention | Example |
+|---------|------------|---------|
+| Classes, Methods, Properties | PascalCase | `MyClass`, `DoSomething()` |
+| Private/Protected fields | `_camelCase` | `_myField` |
+| Public fields | `_PascalCase` | `_MyField` |
+| Constants | `ALL_CAPS` | `MAX_VALUE` |
+| Parameters, locals | camelCase | `myParam` |
+| Indentation | Tabs | - |
+
+You can customize the severity and specificity of those settings in that file
+
 ## Analyzers Included
 
-Further documentation [can be found here](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview?tabs=net-10), but a brief overview:
+All analyzers are Roslyn-based and framework-agnostic - they work identically with .NET 8, 9, and 10. Further documentation [can be found here](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/overview?tabs=net-10).
 
-### Microsoft.CodeAnalysis.NetAnalyzers
-- CA1xxx: Design rules
-- CA2xxx: Usage rules
-- CA3xxx: Security rules
-- CA5xxx: Security rules
+### Always-On (Core)
 
-### StyleCop.Analyzers
-- SA1xxx: Documentation rules
-- SA0xxx: Special rules
+| Analyzer | Rules | Description |
+|----------|-------|-------------|
+| **Microsoft.CodeAnalysis.NetAnalyzers** | CA1xxx-CA5xxx | Design, usage, and security rules (built into SDK) |
+| **StyleCop.Analyzers** | SA0xxx-SA1xxx | Code style and documentation rules |
+
+### On by Default (Opt-Out)
+
+| Analyzer | Rules | Toggle Property | Description |
+|----------|-------|----------------|-------------|
+| **IDisposableAnalyzers** | IDISP001-026 | `EnableIDisposableAnalyzers` | Resource leak detection (422+ GitHub stars) |
+| **AsyncFixer** | AsyncFixer01-06 | `EnableAsyncFixer` | Async/await anti-pattern detection |
+
+### Off by Default (Opt-In)
+
+| Analyzer | Rules | Toggle Property | Description |
+|----------|-------|----------------|-------------|
+| **Meziantou.Analyzer** | MA0001+ | `EnableMeziantouAnalyzer` | 139+ rules for common .NET mistakes |
+| **Roslynator.Analyzers** | RCS1xxx+ | `EnableRoslynatorAnalyzers` | 200+ analyzers and code fixes |
+| **SonarAnalyzer.CSharp** | S1xxx+ | `EnableSonarAnalyzer` | Security and bug detection |
+
+### .NET Version Compatibility
+
+All included packages are Roslyn analyzers (`PrivateAssets="All"`) that run at compile time via the Roslyn compiler platform. They are framework-agnostic and require no TFM-conditional references. `AnalysisLevel=latest-all` automatically adapts to the installed SDK version.
+
+**Note:** Meziantou.Analyzer uses version 2.0.x for broader Roslyn compatibility (including Unity's older Roslyn). For pure .NET 8/9/10 projects, you can upgrade to Meziantou.Analyzer 3.x by overriding the version in your `.csproj`.
+
+### Manually-Available Analyzers
+
+These analyzers are not bundled but can be added manually to your project if needed:
+
+- **AspNetCoreAnalyzers** - ASP.NET Core-specific rules
+- **ReflectionAnalyzers** - Reflection API usage validation
+- **WpfAnalyzers** - WPF-specific rules
 
 ## Customization
 

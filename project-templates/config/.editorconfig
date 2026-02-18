@@ -238,6 +238,97 @@ dotnet_diagnostic.SA1600.severity = suggestion
 # StyleCop: Disable empty statements warning (sometimes needed)
 dotnet_diagnostic.SA1106.severity = suggestion
 
+# =============================================================================
+# IDisposableAnalyzers (IDISP001-026) - Resource leak detection
+# =============================================================================
+
+# Default: all rules at warning
+dotnet_diagnostic.IDISP001.severity = warning
+dotnet_diagnostic.IDISP002.severity = warning
+dotnet_diagnostic.IDISP003.severity = warning
+dotnet_diagnostic.IDISP004.severity = warning
+dotnet_diagnostic.IDISP005.severity = warning
+dotnet_diagnostic.IDISP007.severity = warning
+dotnet_diagnostic.IDISP008.severity = warning
+dotnet_diagnostic.IDISP009.severity = warning
+dotnet_diagnostic.IDISP010.severity = warning
+dotnet_diagnostic.IDISP011.severity = warning
+dotnet_diagnostic.IDISP012.severity = warning
+dotnet_diagnostic.IDISP013.severity = warning
+dotnet_diagnostic.IDISP014.severity = warning
+dotnet_diagnostic.IDISP015.severity = warning
+dotnet_diagnostic.IDISP016.severity = warning
+dotnet_diagnostic.IDISP018.severity = warning
+dotnet_diagnostic.IDISP019.severity = warning
+dotnet_diagnostic.IDISP020.severity = warning
+dotnet_diagnostic.IDISP021.severity = warning
+dotnet_diagnostic.IDISP022.severity = warning
+dotnet_diagnostic.IDISP023.severity = warning
+dotnet_diagnostic.IDISP024.severity = warning
+dotnet_diagnostic.IDISP025.severity = warning
+dotnet_diagnostic.IDISP026.severity = warning
+
+# Game-dev adjustments: engine-managed lifecycle and pooling patterns
+dotnet_diagnostic.IDISP006.severity = suggestion
+dotnet_diagnostic.IDISP017.severity = suggestion
+
+# =============================================================================
+# AsyncFixer - Async/await anti-pattern detection
+# =============================================================================
+
+dotnet_diagnostic.AsyncFixer01.severity = warning
+dotnet_diagnostic.AsyncFixer02.severity = warning
+dotnet_diagnostic.AsyncFixer03.severity = warning
+dotnet_diagnostic.AsyncFixer04.severity = warning
+dotnet_diagnostic.AsyncFixer05.severity = warning
+dotnet_diagnostic.AsyncFixer06.severity = warning
+
+# =============================================================================
+# Meziantou.Analyzer - Starts disabled, selectively enable high-value rules
+# =============================================================================
+
+# Global mode: disabled by default (enable via MeziantouAnalysisMode or per-rule)
+dotnet_code_quality.MeziantouAnalysisMode = None
+
+# High-value rules enabled selectively
+dotnet_diagnostic.MA0001.severity = warning
+dotnet_diagnostic.MA0006.severity = warning
+dotnet_diagnostic.MA0015.severity = warning
+dotnet_diagnostic.MA0025.severity = warning
+dotnet_diagnostic.MA0049.severity = warning
+dotnet_diagnostic.MA0076.severity = warning
+
+# Disabled: overlaps or conflicts with game-dev patterns
+dotnet_diagnostic.MA0004.severity = none
+dotnet_diagnostic.MA0042.severity = none
+dotnet_diagnostic.MA0045.severity = none
+
+# =============================================================================
+# Roslynator.Analyzers - Suppress overlapping rules
+# =============================================================================
+
+# Duplicates of StyleCop/CA rules
+dotnet_diagnostic.RCS1018.severity = none
+dotnet_diagnostic.RCS1036.severity = none
+dotnet_diagnostic.RCS1037.severity = none
+
+# Game-dev adjustments (MonoBehaviour/Node constraints)
+dotnet_diagnostic.RCS1102.severity = suggestion
+dotnet_diagnostic.RCS1169.severity = suggestion
+
+# =============================================================================
+# SonarAnalyzer.CSharp - Suppress overlapping rules
+# =============================================================================
+
+# Covered by other analyzers
+dotnet_diagnostic.S1135.severity = none
+dotnet_diagnostic.S1172.severity = none
+dotnet_diagnostic.S3881.severity = none
+
+# Game-dev patterns (singletons, static access)
+dotnet_diagnostic.S1118.severity = suggestion
+dotnet_diagnostic.S2696.severity = suggestion
+
 [*.{csproj,props,targets}]
 indent_style = tab
 indent_size = 2

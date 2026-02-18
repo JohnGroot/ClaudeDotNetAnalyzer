@@ -38,7 +38,7 @@ fi
 jq -r --argjson max "$MAX_ISSUES" "
 .runs[]? |
 .results[]? |
-select($SEVERITY_FILTER $RULES_FILTER) |
+select(($SEVERITY_FILTER $RULES_FILTER) and ((.suppressions // []) | length == 0)) |
 {
 	ruleId: .ruleId,
 	level: .level,

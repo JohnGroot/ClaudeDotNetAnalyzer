@@ -53,6 +53,24 @@ if [[ -f "$CONFIG_FILE" ]]; then
 	PROJECT_FILE=$(jq -r '.project_file // empty' "$CONFIG_FILE")
 fi
 
+# Read analyzer toggles from config and build MSBuild property flags
+ANALYZER_PROPS=""
+if [[ -f "$CONFIG_FILE" ]]; then
+	for key_prop in \
+		"idisposable_analyzers:EnableIDisposableAnalyzers" \
+		"async_fixer:EnableAsyncFixer" \
+		"meziantou_analyzer:EnableMeziantouAnalyzer" \
+		"roslynator_analyzers:EnableRoslynatorAnalyzers" \
+		"sonar_analyzer:EnableSonarAnalyzer"; do
+		json_key="${key_prop%%:*}"
+		msbuild_prop="${key_prop##*:}"
+		val=$(jq -r ".analyzers.${json_key} // empty" "$CONFIG_FILE")
+		if [[ "$val" == "true" || "$val" == "false" ]]; then
+			ANALYZER_PROPS="$ANALYZER_PROPS /p:${msbuild_prop}=${val}"
+		fi
+	done
+fi
+
 # Detect .NET project file if not specified
 if [[ -z "$PROJECT_FILE" ]]; then
 	PROJECT_FILE=$("$LIB_DIR/detect-project.sh" "$CWD")
@@ -74,7 +92,7 @@ BUILD_OUTPUT=$(dotnet build "$PROJECT_FILE" \
 	"/p:ErrorLog=$SARIF_FILE;version=2.1" \
 	-consoleloggerparameters:NoSummary \
 	--no-incremental \
-	-v:q 2>&1) || true
+	-v:q $ANALYZER_PROPS 2>&1) || true
 
 # Check if SARIF file was created
 if [[ ! -f "$SARIF_FILE" || ! -s "$SARIF_FILE" ]]; then

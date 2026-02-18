@@ -2,5 +2,12 @@
 	"severity_threshold": "all",
 	"max_issues": 50,
 	"ignore_rules": [],
-	"project_file": ""
+	"project_file": "",
+	"analyzers": {
+		"idisposable_analyzers": true,
+		"async_fixer": true,
+		"meziantou_analyzer": false,
+		"roslynator_analyzers": false,
+		"sonar_analyzer": false
+	}
 }

@@ -1,0 +1,30 @@
+#!/bin/bash
+# hooks/local.sh.example
+# Fork-specific customizations for ClaudeDotNetAnalyzer
+# Copy this file to hooks/local.sh and customize for your team.
+# This file is sourced after config loading, before dotnet build runs.
+#
+# hooks/local.sh is absent from upstream by convention (not gitignored),
+# so it will never cause merge conflicts when pulling upstream fixes.
+#
+# Available variables you can override:
+#   SEVERITY_THRESHOLD  - "error", "warning", or "all" (default: "all")
+#   MAX_ISSUES          - integer max issues to report (default: 50)
+#   IGNORE_RULES        - comma-separated rule IDs to suppress
+#   PROJECT_FILE        - path to .sln or .csproj (overrides auto-detect)
+#
+# Add custom MSBuild properties (e.g., for analyzers not in the built-in list):
+# EXTRA_BUILD_PROPS+=("-p:EnableMyCustomAnalyzer=true")
+# EXTRA_BUILD_PROPS+=("-p:MyAnalyzerMode=strict")
+#
+# Example: raise default severity threshold for your team
+# SEVERITY_THRESHOLD="warning"
+#
+# Example: add a custom analyzer package your team uses
+# EXTRA_BUILD_PROPS+=("-p:EnableSecurityCodeScan=true")
+#
+# Example: suppress a noisy rule project-wide
+# IGNORE_RULES="CA1707,SA1633"
+#
+# Example: always target a specific solution file
+# PROJECT_FILE="src/MyCompany.sln"

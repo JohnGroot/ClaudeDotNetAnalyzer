@@ -176,6 +176,10 @@ These analyzers are not bundled but can be added manually to your project if nee
 
 ## Customization
 
+### For Forkers
+
+This project is designed to be forked for team-specific analyzer pipelines. Create `hooks/local.sh` (from `hooks/local.sh.example`) to add custom MSBuild properties or override config variables without touching upstream-maintained files — so `git merge upstream/main` stays clean. See [FORK.md](FORK.md) for the full guide including the file ownership contract and upstream merge workflow.
+
 ### Suppress Specific Rules
 
 In your `.editorconfig`:

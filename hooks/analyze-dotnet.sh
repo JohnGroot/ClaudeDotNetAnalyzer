@@ -34,6 +34,10 @@ fi
 CS_STAGED=$(git diff --name-only --cached 2>/dev/null | grep '\.cs$' || true)
 CS_UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null | grep '\.cs$' || true)
 
+# Combine modified .cs files into a JSON array for context-efficient output
+ALL_CS_FILES=$(printf '%s\n%s\n%s' "$CS_CHANGES" "$CS_STAGED" "$CS_UNTRACKED" \
+	| sort -u | grep -v '^$' | jq -R . | jq -s . || echo '[]')
+
 if [[ -z "$CS_CHANGES" && -z "$CS_STAGED" && -z "$CS_UNTRACKED" ]]; then
 	echo '{}' # No C# changes, skip analysis
 	exit 0
@@ -76,6 +80,15 @@ if [[ -f "$CONFIG_FILE" ]]; then
 	done
 fi
 
+# Extension point: load fork-specific customizations if present
+# Forkers: copy hooks/local.sh.example to hooks/local.sh and customize
+EXTRA_BUILD_PROPS=()
+LOCAL_HOOK="$SCRIPT_DIR/local.sh"
+if [[ -f "$LOCAL_HOOK" ]]; then
+	# shellcheck source=/dev/null
+	source "$LOCAL_HOOK"
+fi
+
 # Detect .NET project file if not specified
 if [[ -z "$PROJECT_FILE" ]]; then
 	PROJECT_FILE=$("$LIB_DIR/detect-project.sh" "$CWD")
@@ -97,7 +110,7 @@ BUILD_OUTPUT=$(dotnet build "$PROJECT_FILE" \
 	"/p:ErrorLog=$SARIF_FILE;version=2.1" \
 	-consoleloggerparameters:NoSummary \
 	--no-incremental \
-	-v:q $ANALYZER_PROPS 2>&1) || true
+	-v:q $ANALYZER_PROPS ${EXTRA_BUILD_PROPS[@]+"${EXTRA_BUILD_PROPS[@]}"} 2>&1) || true
 
 # Check if SARIF file was created
 if [[ ! -f "$SARIF_FILE" || ! -s "$SARIF_FILE" ]]; then
@@ -112,32 +125,31 @@ if [[ ! -f "$SARIF_FILE" || ! -s "$SARIF_FILE" ]]; then
 	exit 0
 fi
 
-# Parse SARIF for issues
-ISSUES=$("$LIB_DIR/parse-sarif.sh" "$SARIF_FILE" "$SEVERITY_THRESHOLD" "$IGNORE_RULES" "$MAX_ISSUES")
+# Parse SARIF for issues with two-tier context-efficient output
+PARSE_OUTPUT=$("$LIB_DIR/parse-sarif.sh" "$SARIF_FILE" "$SEVERITY_THRESHOLD" "$IGNORE_RULES" "$MAX_ISSUES" "$ALL_CS_FILES")
 
-# Count issues (grep -c returns non-zero if no matches, so we handle that)
-if [[ -z "$ISSUES" ]]; then
-	ISSUE_COUNT=0
-else
-	ISSUE_COUNT=$(echo "$ISSUES" | grep -c '^\[' || true)
-	# Ensure ISSUE_COUNT is a valid number
-	if ! [[ "$ISSUE_COUNT" =~ ^[0-9]+$ ]]; then
-		ISSUE_COUNT=0
-	fi
-fi
+# Parse the COUNTS line and formatted output
+COUNTS_LINE=$(echo "$PARSE_OUTPUT" | head -1)
+FORMATTED=$(echo "$PARSE_OUTPUT" | tail -n +2)
+MODIFIED_COUNT=$(echo "$COUNTS_LINE" | cut -d: -f2 | cut -d, -f1)
+TOTAL_COUNT=$(echo "$COUNTS_LINE" | cut -d: -f2 | cut -d, -f2)
 
-if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-	# Format the reason message
-	if [[ "$ISSUE_COUNT" -ge "$MAX_ISSUES" ]]; then
-		HEADER="Found $ISSUE_COUNT+ code analysis issues (showing first $MAX_ISSUES):"
+# Ensure counts are valid numbers
+if ! [[ "$MODIFIED_COUNT" =~ ^[0-9]+$ ]]; then MODIFIED_COUNT=0; fi
+if ! [[ "$TOTAL_COUNT" =~ ^[0-9]+$ ]]; then TOTAL_COUNT=0; fi
+
+if [[ "$TOTAL_COUNT" -gt 0 ]]; then
+	# Build header based on counts
+	if [[ "$MODIFIED_COUNT" -gt 0 ]]; then
+		HEADER="Found $MODIFIED_COUNT issues in modified files ($TOTAL_COUNT total across project):"
 	else
-		HEADER="Found $ISSUE_COUNT code analysis issue(s):"
+		HEADER="Found $TOTAL_COUNT code analysis issues in project (none in modified files):"
 	fi
 
 	REASON=$(cat <<EOF
 $HEADER
 
-$ISSUES
+$FORMATTED
 
 Please fix these issues before continuing.
 EOF
